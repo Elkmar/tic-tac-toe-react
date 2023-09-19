@@ -1,8 +1,8 @@
 import React from "react";
 import { useState } from "react";
 
-function Square({value, onSquareClick}) {
-    return <button className="square" onClick={onSquareClick}>{value}</button>;
+function Square({value, onSquareClick, highlight}) {
+    return <button className={`square ${highlight ? "highlight" : ""}`}  onClick={onSquareClick}>{value}</button>;
 }
 
 function calculateWinner(squares) {
@@ -18,12 +18,14 @@ function calculateWinner(squares) {
     ];
     for (let i = 0; i < winningLines.length; i++) {
         const [a, b, c] = winningLines[i];
-        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) return squares[a]; //if the squares[a] is not null and the squares[a] is equal to squares[b] and the squares[a] is equal to squares[c], then we return squares[a]
+        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+            return [a, b, c]; //if the squares[a] is not null and the squares[a] is equal to squares[b] and the squares[a] is equal to squares[c], then we return squares[a]
+        }
     }
     return null;
 }
 
-function Board({xIsNext, squares, onPlay}) {
+function Board({xIsNext, squares, onPlay, winningSquares}) {
 
     function handleClick(i) {
         //we need to create a copy of the squares array, modify the copy, and then replace the squares array with the modified copy
@@ -39,11 +41,11 @@ function Board({xIsNext, squares, onPlay}) {
         }
         onPlay(nextSquares);
     }
-
-    const winner = calculateWinner(squares);
+    
     let status;
-    if (winner) {
-        status = "Winner: " + winner;
+
+    if (winningSquares) {
+        status = "Winner: " + squares[winningSquares[0]];
     } else {
         status = "Next player: " + (xIsNext ? "X" : "O");
     }
@@ -53,10 +55,15 @@ function Board({xIsNext, squares, onPlay}) {
         const boardRows = [];
 
         for (let row = 0; row < 3; row++) {
+
             const squareInRow = [];
+
             for (let col = 0; col < 3; col++) {
+
                 const index = row * 3 + col;
-                squareInRow.push(<Square key={index} value={squares[index]} onSquareClick={() => handleClick(index)} />);
+                const isWinningSquare = winningSquares && winningSquares.includes(index);
+
+                squareInRow.push(<Square key={index} value={squares[index]} onSquareClick={() => handleClick(index)} highlight={isWinningSquare} />);
             }
             boardRows.push(<div key={row} className="board-row">{squareInRow}</div>);
         }
@@ -123,10 +130,12 @@ export default function Game() {
         setIsInverted(!isInverted);
     };
 
+    const winningSquares = calculateWinner(currentSquares);
+
     return (
         <div className="game">
             <div className="game-board">
-                <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+                <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} winningSquares={winningSquares} />
             </div>
             <div className='game-info'>
                 <button onClick={inverseMoves}>Inverse moves</button>
