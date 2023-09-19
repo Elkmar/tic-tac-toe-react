@@ -57,12 +57,9 @@ function Board({xIsNext, squares, onPlay}) {
             for (let col = 0; col < 3; col++) {
                 const index = row * 3 + col;
                 squareInRow.push(<Square key={index} value={squares[index]} onSquareClick={() => handleClick(index)} />);
-                console.log(squareInRow);
             }
             boardRows.push(<div key={row} className="board-row">{squareInRow}</div>);
         }
-
-        console.log(boardRows);
 
         return boardRows;
     };
