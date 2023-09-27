@@ -46,6 +46,8 @@ function Board({xIsNext, squares, onPlay, winningSquares}) {
 
     if (winningSquares) {
         status = "Winner: " + squares[winningSquares[0]];
+    } else if (!squares.includes(null)) {
+        status = "Draw";
     } else {
         status = "Next player: " + (xIsNext ? "X" : "O");
     }
