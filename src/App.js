@@ -34,18 +34,20 @@ function Board({xIsNext, squares, onPlay, winningSquares}) {
 
         const nextSquares = squares.slice();
 
-        if (xIsNext) {
-            nextSquares[i] = "X";
-        } else {
-            nextSquares[i] = "O";
-        }
-        onPlay(nextSquares);
+        nextSquares[i] = xIsNext ? "X" : "O";
+        
+        //we need to calculate the row and col of the square that was clicked in order to display it in the move history
+        const row = Math.floor(i / 3) + 1;
+        const col = (i % 3) + 1;
+        onPlay(nextSquares, { row, col });
     }
     
     let status;
 
     if (winningSquares) {
         status = "Winner: " + squares[winningSquares[0]];
+    } else if (!squares.includes(null)) {
+        status = "Draw";
     } else {
         status = "Next player: " + (xIsNext ? "X" : "O");
     }
@@ -81,47 +83,34 @@ function Board({xIsNext, squares, onPlay, winningSquares}) {
 
 export default function Game() {
 
-    const [history, setHistory] = useState([Array(9).fill(null)]);
+    const [history, setHistory] = useState([{ squares: Array(9).fill(null), coordinates: null }]);
     const [currentMove, setCurrentMove] = useState(0);
     const [isInverted, setIsInverted] = useState(false);
     const xIsNext = currentMove % 2 === 0;
-    const currentSquares = history[currentMove];
+    const currentSquares = history[currentMove].squares;
 
-    function handlePlay(nextSquares) {
-        const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+    function handlePlay(nextSquares, coordinates) {
+        const nextHistory = history.slice(0, currentMove + 1).concat([{ squares: nextSquares, coordinates }]);
         setHistory(nextHistory);
         setCurrentMove(nextHistory.length - 1);
-    }
+    }    
 
     function jumpTo(nextMove) {
         setCurrentMove(nextMove);
     }
 
-    const moves = history.map((squares, move) => {
-
-        let description;
-
-        if (move > 0) {
-            description = "Go to move #" + move;
-        } else {
-            description = "Go to game start";
-        }
-
-        if (move === currentMove) {
-            return (
-                <li key={move}>
-                    <p>You're at actually at move {move}</p>
-                </li>
-            );
-        } else {
-            return (
-                <li key={move}>
-                    <button onClick={() => jumpTo(move)}>{description}</button>
-                </li>
-            );
-        }
+    const moves = history.map((step, move) => {
+        const desc = move ?
+            'Go to move #' + move + (step.coordinates ? ` (${step.coordinates.row}, ${step.coordinates.col})` : '') :
+            'Go to game start';
+        
+        return (
+            <li key={move}>
+                <button className={move === currentMove ? 'move-list-item-selected' : ''} onClick={() => jumpTo(move)}>{desc}</button>
+            </li>
+        );
     });
-
+        
     if (isInverted) {
         moves.reverse();
     }
